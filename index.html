@@ -24,21 +24,13 @@
 
   /* ---- Banner ---- */
   .banner{
-    position:relative; border-radius:26px; overflow:hidden;
-    min-height:168px; display:flex; align-items:flex-end;
+    border-radius:22px; overflow:hidden;
     background:linear-gradient(135deg,#ff8fb1,#ffd36e 55%,#7ec8ff);
     box-shadow:0 12px 30px rgba(40,60,110,.22);
     border:4px solid #fff;
   }
-  .banner img.hero{ position:absolute; inset:0; width:100%; height:100%; object-fit:cover; }
-  .banner .scrim{ position:absolute; inset:0;
-    background:linear-gradient(to top, rgba(20,28,55,.62) 0%, rgba(20,28,55,.12) 45%, rgba(20,28,55,0) 70%); }
-  .banner .heading{ position:relative; padding:18px 22px; width:100%; }
-  .banner.has-photo .heading h1, .banner.has-photo .heading p{ color:#fff; text-shadow:0 2px 8px rgba(0,0,0,.45); }
-  .banner .heading h1{ font-size:clamp(26px,7vw,46px); font-weight:900; letter-spacing:.5px; line-height:1.02; }
-  .banner .heading p{ font-size:clamp(13px,3.4vw,18px); font-weight:700; margin-top:4px; opacity:.95; }
-  .placeholder-note{ position:absolute; top:10px; right:14px; font-size:11px; font-weight:700;
-    color:#fff; background:rgba(0,0,0,.28); padding:5px 10px; border-radius:999px; }
+  /* Show the whole banner image, never cropped — it scales to the page width */
+  .banner img.hero{ display:block; width:100%; height:auto; }
 
   /* ---- Grid ---- */
   .subhead{ text-align:center; font-weight:800; font-size:clamp(15px,4vw,20px);
@@ -119,12 +111,10 @@ const GAMES = [
 // ---- Render banner ----
 (function(){
   const b=document.getElementById("banner");
-  const inner = '<div class="heading"><h1>🎮 Alexander\'s Game Zone</h1><p>Choose your adventure</p></div>';
   if(BANNER_IMG){
-    b.classList.add("has-photo");
-    b.innerHTML = '<img class="hero" src="'+BANNER_IMG+'" alt="banner"><div class="scrim"></div>'+inner;
+    b.innerHTML = '<img class="hero" src="'+BANNER_IMG+'" alt="Alexander">';
   } else {
-    b.innerHTML = '<span class="placeholder-note">banner photo coming soon</span>'+inner;
+    b.style.minHeight = "120px";   // simple colored bar until a photo is added
   }
 })();
 
