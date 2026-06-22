@@ -310,7 +310,7 @@ function update(dt){
     camTarget = Math.max(0, H*0.36 - activeNaturalY);
   }
   camY += (camTarget-camY)*Math.min(1,dt*6);
-  if(lookDir!==0){ const l=peekLimits(); viewOffset=clamp(viewOffset + lookDir*760*dt, l.down, l.up); }
+  if(lookHeld!==0){ const l=peekLimits(); viewOffset=clamp(viewOffset + lookHeld*760*dt, l.down, l.up); }
   else if(!peeking) viewOffset += (0-viewOffset)*Math.min(1,dt*8);   // snap view back to the action
   for(let i=falling.length-1;i>=0;i--){ const f=falling[i]; f.vy+=900*dt; f.x+=f.vx*dt; f.y+=f.vy*dt; f.rot+=f.vr*dt; if(f.y>H+90) falling.splice(i,1); }
   for(let i=confetti.length-1;i>=0;i--){ const c=confetti[i]; c.vy+=c.g*dt; c.x+=c.vx*dt; c.y+=c.vy*dt; c.rot+=c.vr*dt; c.life+=dt; if(c.life>c.max) confetti.splice(i,1); }
@@ -363,13 +363,24 @@ function drawGoalLines(){
     ctx.strokeStyle=b.beaten?"rgba(255,205,70,0.95)":"rgba(255,255,255,0.5)";
     ctx.lineWidth=2; ctx.setLineDash([8,7]);
     ctx.beginPath(); ctx.moveTo(0,y); ctx.lineTo(playRight,y); ctx.stroke(); ctx.setLineDash([]);
-    const label=b.icon+" "+b.name+(b.beaten?"  ✓":"");
-    ctx.font="600 "+(12*S)+"px -apple-system,sans-serif";
-    const tw=ctx.measureText(label).width;
-    ctx.fillStyle=b.beaten?"rgba(255,205,70,0.92)":"rgba(15,20,45,0.6)";
-    roundRect(6, y-20*S, tw+16*S, 18*S, 9*S); ctx.fill();
+    const name=b.name+(b.beaten?"  ✓":"");
+    ctx.font="700 "+(12*S)+"px -apple-system,sans-serif";
+    const tw=ctx.measureText(name).width;
+    const th=22*S, iw=30*S, ih=18*S, pad=5*S, gap=6*S;
+    const pw=pad+iw+gap+tw+pad, px=12+48*S, py=y-th-3;     // sit to the right of the look buttons
+    ctx.fillStyle=b.beaten?"rgba(255,205,70,0.95)":"rgba(15,20,45,0.74)";
+    roundRect(px,py,pw,th,9*S); ctx.fill();
+    const ix=px+pad, iy=py+(th-ih)/2;
+    ctx.save(); roundRect(ix,iy,iw,ih,4*S); ctx.clip();
+    const im=getImgFor(b);
+    if(im && im._ok){ drawCover(im,ix,iy,iw,ih); }
+    else { ctx.fillStyle="rgba(255,255,255,0.22)"; ctx.fillRect(ix,iy,iw,ih);
+           ctx.fillStyle="#fff"; ctx.font=(13*S)+"px -apple-system,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
+           ctx.fillText(b.icon, ix+iw/2, iy+ih/2+1); }
+    ctx.restore();
     ctx.fillStyle=b.beaten?"#3a2a00":"#fff"; ctx.textAlign="left"; ctx.textBaseline="middle";
-    ctx.fillText(label, 14, y-11*S);
+    ctx.font="700 "+(12*S)+"px -apple-system,sans-serif";
+    ctx.fillText(name, ix+iw+gap, py+th/2);
     ctx.restore();
   }
 }
@@ -529,19 +540,18 @@ function wrapText(t,cx,y,maxw,lh){
 
 // ====== HUD ======
 function muteBtnRect(){ const s=32*S; return {x:8,y:H-s-8,s}; }
-function upBtnRect(){ const s=46*S; return {x:10, y:H*0.5-s-6, s}; }
-function downBtnRect(){ const s=46*S; return {x:10, y:H*0.5+6, s}; }
+function upBtnRect(){   const s=44*S,g=8*S,top=H*0.5-(3*s+2*g)/2; return {x:10, y:top, s}; }
+function backBtnRect(){ const s=44*S,g=8*S,top=H*0.5-(3*s+2*g)/2; return {x:10, y:top+s+g, s}; }
+function downBtnRect(){ const s=44*S,g=8*S,top=H*0.5-(3*s+2*g)/2; return {x:10, y:top+2*(s+g), s}; }
 function inRect(x,y,r){ return x>=r.x && x<=r.x+r.s && y>=r.y && y<=r.y+r.s; }
 function drawLookButtons(){
-  const list=[[upBtnRect(),"▲",lookDir>0,"goals"],[downBtnRect(),"▼",lookDir<0,"built"]];
+  const list=[[upBtnRect(),"▲",lookHeld>0],[backBtnRect(),"↩",peeking],[downBtnRect(),"▼",lookHeld<0]];
   for(const it of list){
     const r=it[0], on=it[2];
     ctx.fillStyle= on?"rgba(255,211,77,0.95)":"rgba(0,0,0,0.34)";
     roundRect(r.x,r.y,r.s,r.s,11*S); ctx.fill();
     ctx.fillStyle= on?"#0b1230":"#fff"; ctx.textAlign="center"; ctx.textBaseline="middle";
-    ctx.font="700 "+(18*S)+"px -apple-system,sans-serif"; ctx.fillText(it[1], r.x+r.s/2, r.y+r.s/2);
-    ctx.fillStyle="rgba(255,255,255,0.7)"; ctx.font="600 "+(8.5*S)+"px -apple-system,sans-serif";
-    ctx.fillText(it[3], r.x+r.s/2, it[1]==="▲"? r.y-4 : r.y+r.s+8);
+    ctx.font="700 "+(18*S)+"px -apple-system,sans-serif"; ctx.fillText(it[1], r.x+r.s/2, r.y+r.s/2+1);
   }
 }
 function drawHUD(){
@@ -576,7 +586,7 @@ function drawPeekHint(){
   ctx.textAlign="center"; ctx.textBaseline="middle";
   if(peeking){
     ctx.font="700 "+(12*S)+"px -apple-system,sans-serif";
-    const t="🔭 looking around — let go to keep building";
+    const t="🔭 looking around — press ↩ to go back";
     const tw=Math.min(playRight-20, ctx.measureText(t).width);
     ctx.fillStyle="rgba(0,0,0,0.5)"; roundRect(playRight/2-tw/2-12*S, 8, tw+24*S, 26*S, 13*S); ctx.fill();
     ctx.fillStyle="#ffd34d"; ctx.fillText(t, playRight/2, 8+13*S);
@@ -585,7 +595,7 @@ function drawPeekHint(){
   if(now<peekHintUntil){
     ctx.save(); ctx.globalAlpha=clamp((peekHintUntil-now)/800,0,1)*0.9;
     ctx.font="700 "+(12*S)+"px -apple-system,sans-serif";
-    const t="hold ▲ ▼ (left) to look around";
+    const t="▲ ▼ look around · ↩ go back";
     const tw=ctx.measureText(t).width;
     ctx.fillStyle="rgba(0,0,0,0.45)"; roundRect(playRight/2-tw/2-12*S, H-44*S, tw+24*S, 24*S, 12*S); ctx.fill();
     ctx.fillStyle="#fff"; ctx.fillText(t, playRight/2, H-32*S);
@@ -671,16 +681,19 @@ preloadAll();
 
 // ====== Input ======
 function handleTap(px,py){
-  if(state==="play"){ const r=muteBtnRect(); if(px>=r.x&&px<=r.x+r.s&&py>=r.y&&py<=r.y+r.s){ muted=!muted; if(!muted) sThunk(); return; } }
+  if(state==="play"){
+    const r=muteBtnRect(); if(px>=r.x&&px<=r.x+r.s&&py>=r.y&&py<=r.y+r.s){ muted=!muted; if(!muted) sThunk(); return; }
+    if(peeking){ goLive(); return; }        // tapping the board while looking returns to the action
+    drop(); return;
+  }
   if(state==="start"){ startGame(); return; }
-  if(state==="play"){ drop(); return; }
   if(state==="over"){ if(now-overAt>450) startGame(); return; }
 }
 function pos(e){ const t=e.touches&&e.touches[0]?e.touches[0]:(e.changedTouches&&e.changedTouches[0]?e.changedTouches[0]:e);
   const r=canvas.getBoundingClientRect(); return {x:t.clientX-r.left,y:t.clientY-r.top}; }
 // Tap (on PRESS) drops a floor — instant/snappy. Hold the ▲ / ▼ buttons to look up at
 // the remaining goals or down at what you've built; release snaps back to the action.
-let lookDir=0;
+let lookHeld=0;
 function peekLimits(){
   const maxDown = stack.length*FLOOR_PX + 60;                 // down to the base
   const tallest = BUILDINGS[BUILDINGS.length-1].feet;
@@ -689,22 +702,25 @@ function peekLimits(){
 }
 function onDown(x,y){
   if(state==="play"){
-    if(inRect(x,y,upBtnRect())){ lookDir=1; peeking=true; return; }
-    if(inRect(x,y,downBtnRect())){ lookDir=-1; peeking=true; return; }
+    if(inRect(x,y,upBtnRect())){ lookHeld=1; peeking=true; return; }
+    if(inRect(x,y,downBtnRect())){ lookHeld=-1; peeking=true; return; }
+    if(inRect(x,y,backBtnRect())){ goLive(); return; }
   }
   handleTap(x,y);                                              // drop / start / restart / mute, all on press
 }
-function onUp(){ lookDir=0; peeking=false; }
+function onUp(){ lookHeld=0; }                 // releasing an arrow FREEZES the view (no snap-back)
+function goLive(){ peeking=false; lookHeld=0; } // middle button glides the view back to the live action
 canvas.addEventListener("pointerdown",(e)=>{ e.preventDefault(); const p=pos(e); onDown(p.x,p.y); },{passive:false});
 canvas.addEventListener("pointerup",(e)=>{ e.preventDefault(); onUp(); },{passive:false});
 canvas.addEventListener("pointercancel",()=>{ onUp(); });
 canvas.addEventListener("pointerleave",()=>{ onUp(); });
 window.addEventListener("keydown",(e)=>{
   if(e.code==="Space"||e.code==="Enter"){ e.preventDefault(); handleTap(-1,-1); }
-  else if(e.code==="ArrowUp"   && state==="play"){ e.preventDefault(); lookDir=1; peeking=true; }
-  else if(e.code==="ArrowDown" && state==="play"){ e.preventDefault(); lookDir=-1; peeking=true; }
+  else if(e.code==="ArrowUp"   && state==="play"){ e.preventDefault(); lookHeld=1; peeking=true; }
+  else if(e.code==="ArrowDown" && state==="play"){ e.preventDefault(); lookHeld=-1; peeking=true; }
+  else if((e.code==="Escape"||e.code==="Backspace") && state==="play"){ e.preventDefault(); goLive(); }
 });
-window.addEventListener("keyup",(e)=>{ if(e.code==="ArrowUp"||e.code==="ArrowDown"){ lookDir=0; peeking=false; } });
+window.addEventListener("keyup",(e)=>{ if(e.code==="ArrowUp"||e.code==="ArrowDown"){ lookHeld=0; } });
 document.addEventListener("gesturestart",e=>e.preventDefault());
 document.addEventListener("touchmove",e=>e.preventDefault(),{passive:false});
 
