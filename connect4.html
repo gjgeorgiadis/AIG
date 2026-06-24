@@ -138,9 +138,14 @@ body{
 #confetti{ position:absolute; inset:0; z-index:50; pointer-events:none; display:none; }
 @media (min-width:600px){ #app{ height:96svh; margin-top:2svh; border-radius:34px;
   box-shadow:0 40px 120px #000a, inset 0 0 0 1px #ffffff0d; } }
+#backToMenu{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 8px); left:8px; z-index:9999;
+  font:700 14px var(--display,-apple-system,sans-serif); color:#fff; background:rgba(0,0,0,.5);
+  padding:7px 13px; border-radius:999px; text-decoration:none; -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px); }
+#backToMenu:active{ background:rgba(0,0,0,.7); }
 </style>
 </head>
 <body>
+<a href="index.html" id="backToMenu">‹ Menu</a>
 <div id="app" data-screen="home">
 
   <!-- HOME -->
@@ -298,7 +303,7 @@ function chooseMove(b,me,diff){
   if(!valid.length) return -1;
   if(diff==='easy') return easyMove(b,me,valid);
   for(const c of valid){ const r=dropRowB(b,c); b[r][c]=me; const w=win4(b,r,c,me); b[r][c]=0; if(w) return c; }
-  MAXD = diff==='hard'?6:4;
+  MAXD = diff==='hard'?4:2;   // hard = old medium; medium = easier (shallower look-ahead)
   const res=minimax(b,MAXD,-Infinity,Infinity,me,me);
   return res.col>=0?res.col:valid[0];
 }

@@ -17,10 +17,15 @@
     -webkit-tap-highlight-color:transparent; touch-action:none;
     font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
   #game { display:block; width:100%; height:100%; touch-action:none; }
+  #backToMenu{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 8px); left:8px; z-index:10;
+    font:700 14px -apple-system,BlinkMacSystemFont,sans-serif; color:#fff; background:rgba(0,0,0,.42);
+    padding:7px 13px; border-radius:999px; text-decoration:none; }
+  #backToMenu:active{ background:rgba(0,0,0,.62); }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<a href="index.html" id="backToMenu">‹ Menu</a>
 <script>
 (function(){
 "use strict";
@@ -366,7 +371,7 @@ function drawGoalLines(){
     const name=b.name+(b.beaten?"  ✓":"");
     ctx.font="700 "+(12*S)+"px -apple-system,sans-serif";
     const tw=ctx.measureText(name).width;
-    const th=22*S, iw=30*S, ih=18*S, pad=5*S, gap=6*S;
+    const th=34*S, iw=50*S, ih=26*S, pad=6*S, gap=7*S;
     const pw=pad+iw+gap+tw+pad, px=12+48*S, py=y-th-3;     // sit to the right of the look buttons
     ctx.fillStyle=b.beaten?"rgba(255,205,70,0.95)":"rgba(15,20,45,0.74)";
     roundRect(px,py,pw,th,9*S); ctx.fill();
@@ -557,11 +562,11 @@ function drawLookButtons(){
 function drawHUD(){
   ctx.textAlign="left"; ctx.textBaseline="alphabetic"; ctx.fillStyle="#fff";
   ctx.font="800 "+(38*S)+"px -apple-system,sans-serif";
-  ctx.fillText(heightFeet+" ft", 14, 30+30*S);
+  ctx.fillText(heightFeet+" ft", 14, 52+30*S);
   ctx.font="600 "+(13*S)+"px -apple-system,sans-serif"; ctx.fillStyle="rgba(255,255,255,0.85)";
-  ctx.fillText("Floor "+floors+(combo>1?"   🔥 x"+combo:""), 14, 30+30*S+18*S);
+  ctx.fillText("Floor "+floors+(combo>1?"   🔥 x"+combo:""), 14, 52+30*S+18*S);
   ctx.fillStyle="rgba(255,255,255,0.7)";
-  ctx.fillText("Best: "+best.feet+" ft", 14, 30+30*S+34*S);
+  ctx.fillText("Best: "+best.feet+" ft", 14, 52+30*S+34*S);
   // mute
   const r=muteBtnRect(); ctx.fillStyle="rgba(0,0,0,0.3)"; roundRect(r.x,r.y,r.s,r.s,9*S); ctx.fill();
   ctx.font=(17*S)+"px -apple-system,sans-serif"; ctx.textAlign="center"; ctx.textBaseline="middle";
