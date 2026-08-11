@@ -1,0 +1,17 @@
+# macOS junk
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+
+# Claude/editor local settings (contains local file paths — keep private)
+.claude/
+
+# Dropbox conflict copies
+*conflicted copy*
+* copy.html
+
+# Ancillary folders — not part of the website
+Backup/
+Charlie/
+Photos/
