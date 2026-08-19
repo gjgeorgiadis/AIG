@@ -403,15 +403,21 @@ const memoryGame={ name:'Memory', short:'Memory', emoji:'🐵', timeMult:1.5,
     const T=(fn,ms)=>{ const id=setTimeout(()=>{ if(live)fn(); },ms); timers.push(id); return id; };
     const tip=div('tip'), stage=div('mem-stage'), tray=div('mem-tray');
     area.append(tip,stage,tray);
-    let solved=0;
+    let solved=0, skip=null;
+    // Tapping anywhere hides the pictures early — with only 2–3 objects you rarely need
+    // the full look-time. The timer still runs as a backstop if nobody taps.
+    function clearSkip(){ if(skip){ document.removeEventListener('pointerdown', skip, true); skip=null; } }
     function round(){
       if(!live) return;
+      clearSkip();
       const len = solved<3 ? 2 : (solved<7 ? 3 : (solved<10 ? 4 : 5)); // many rounds at 2 & 3 first
-      tip.textContent='Watch carefully…'; stage.innerHTML=''; tray.innerHTML='';
+      tip.textContent='Watch carefully… tap when ready!'; stage.innerHTML=''; tray.innerHTML='';
       const seq=shuffle(POOL).slice(0,len);
       seq.forEach((e,i)=>{ const c=div('mem-card'); c.innerHTML='<span class="idx">'+(i+1)+'</span>'+e; stage.append(c); });
-      T(()=>{
-        if(!live) return;
+      let asked=false;
+      function ask(){
+        if(asked || !live) return;
+        asked=true; clearSkip();
         [...stage.children].forEach(c=>{ c.className='mem-card back'; c.textContent='❓'; });
         tip.textContent='Now tap them in order!';
         let expected=0;
@@ -426,10 +432,13 @@ const memoryGame={ name:'Memory', short:'Memory', emoji:'🐵', timeMult:1.5,
           };
           tray.append(b);
         });
-      }, 2000+len*600);
+      }
+      skip=()=>ask();                                   // capture phase, so nothing can swallow it
+      document.addEventListener('pointerdown', skip, true);
+      T(ask, 2000+len*600);
     }
     round();
-    return ()=>{ live=false; timers.forEach(clearTimeout); };
+    return ()=>{ live=false; clearSkip(); timers.forEach(clearTimeout); };
   }
 };
 
