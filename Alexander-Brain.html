@@ -312,6 +312,7 @@ function div(c){ const d=document.createElement('div'); if(c)d.className=c; retu
 
 /* ---------- state ---------- */
 let timeBudget=90000, gameTotal=90000, gi=0, cur=0, raf=null, teardown=null, tAccrued=0, tLast=0, tRunning=false;
+let ending=false, timerToken=0, timerLive=false;   // guards: no double-endGame, no orphaned timer loops
 const correct=[0,0,0,0];
 const GAME_COUNT=4;
 
@@ -348,17 +349,43 @@ function stopConfetti(){
   ctx.clearRect(0,0,cv.width,cv.height); cv.style.display='none';
 }
 
-/* ---------- countdown ---------- */
+/* ---------- countdown ----------
+   Driven by elapsed time on rAF rather than a chain of setTimeouts. A setTimeout chain
+   stalls when the tab is backgrounded (screen lock / app switch / notification), which left
+   the opaque full-screen overlay stuck over everything with no way to dismiss it. Measuring
+   elapsed time means the very first frame after waking up finishes the countdown instead.
+   The token also makes it cancellable, so two countdowns can never run at once and fire
+   two callbacks (which used to double-start the timer and mount the mini-game twice). */
+let cdToken=0, cdRaf=null;
+function cancelCountdown(){
+  cdToken++;
+  if(cdRaf){ cancelAnimationFrame(cdRaf); cdRaf=null; }
+  $('count').classList.remove('show');
+}
 function countdown(cb){
-  const ov=$('count'), num=$('countNum'); ov.classList.add('show');
-  const seq=['3','2','1','GO!']; let i=0;
-  (function step(){
-    if(i<seq.length){
+  cancelCountdown();                       // supersede anything already running
+  const my=cdToken, ov=$('count'), num=$('countNum');
+  const seq=['3','2','1','GO!'], STEP=700, LAST=600;
+  const total=(seq.length-1)*STEP+LAST;
+  const t0=performance.now();
+  let shown=-1, fired=false;
+  ov.classList.add('show');
+  (function frame(now){
+    if(my!==cdToken) return;               // cancelled or superseded
+    const el=now-t0;
+    if(el>=total){
+      cdRaf=null; ov.classList.remove('show');
+      if(!fired){ fired=true; cb(); }
+      return;
+    }
+    const i=Math.min(seq.length-1, Math.floor(el/STEP));
+    if(i!==shown){
+      shown=i;
       num.textContent=seq[i]; num.classList.toggle('go', seq[i]==='GO!');
       num.classList.remove('pop'); void num.offsetWidth; num.classList.add('pop');
-      const last=i===seq.length-1; i++; setTimeout(step, last?600:700);
-    } else { ov.classList.remove('show'); cb(); }
-  })();
+    }
+    cdRaf=requestAnimationFrame(frame);
+  })(performance.now());
 }
 
 /* =======================================================
@@ -594,6 +621,11 @@ $('introStart').onclick=()=>{ if(!at('intro')) return; show('game'); prepGame();
 function prepGame(){
   const g=GAMES[gi];
   stopConfetti();
+  // tear down anything left over from the previous round before starting a new one
+  timerToken++; timerLive=false; tRunning=false;
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  if(teardown){ try{ teardown(); }catch(e){ console.error(e); } teardown=null; }
+  ending=false;
   cur=0;
   gameTotal=Math.round(timeBudget*(g.timeMult||1));   // memory gets 50% more time
   $('gName').textContent=g.name;
@@ -602,13 +634,21 @@ function prepGame(){
   $('tFill').style.width='100%';
   $('tbar').classList.remove('low');
   $('area').innerHTML='';
-  countdown(()=>{ startTimer(); teardown=g.mount($('area'), { correct:()=>{ cur++; $('gCorrect').textContent=cur; } }); });
+  countdown(()=>{
+    startTimer();
+    // a crash inside a mini-game must not freeze the whole app on a dead screen
+    try{ teardown=g.mount($('area'), { correct:()=>{ cur++; $('gCorrect').textContent=cur; } }); }
+    catch(e){ console.error('mount failed', e); teardown=null; }
+  });
 }
 
 function startTimer(){
   const fill=$('tFill'), tb=$('tbar'); const total=gameTotal;
+  const my=++timerToken;                 // any older loop still alive will see a stale token and stop
+  timerLive=true;
   tAccrued=0; tLast=performance.now(); tRunning=true;
   (function frame(now){
+    if(my!==timerToken) return;          // superseded by a newer round
     if(tRunning) tAccrued += now - tLast;
     tLast = now;
     const p=Math.min(1, tAccrued/total);
@@ -621,9 +661,12 @@ function startTimer(){
 }
 
 function endGame(){
-  tRunning=false;
-  if(raf) cancelAnimationFrame(raf);
-  if(teardown){ teardown(); teardown=null; }
+  if(ending) return;                     // never let a round end twice
+  ending=true;
+  tRunning=false; timerLive=false; timerToken++;
+  if(raf){ cancelAnimationFrame(raf); raf=null; }
+  cancelCountdown();
+  if(teardown){ try{ teardown(); }catch(e){ console.error(e); } teardown=null; }
   correct[gi]=cur;
   $('reEmoji').textContent=GAMES[gi].emoji;
   $('reName').textContent=GAMES[gi].name;
@@ -669,6 +712,14 @@ function showResults(){
 $('again').onclick=()=>{ if(!at('results')) return; stopConfetti(); show('home'); };
 
 window.addEventListener('resize', ()=>{ if(parts.length||confRaf) sizeCv(); });
+
+/* Locking the screen or switching apps pauses rAF. Without this, the first frame after
+   waking up added the whole away-time to the clock at once and the round ended instantly.
+   Pause while hidden, and re-baseline the clock on the way back in. */
+document.addEventListener('visibilitychange', ()=>{
+  if(document.hidden){ tRunning=false; }
+  else { tLast=performance.now(); if(timerLive && at('game')) tRunning=true; }
+});
 })();
 </script>
 </body>
