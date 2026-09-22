@@ -66,6 +66,39 @@
     background:#e7edf8; padding:8px 16px; border-radius:999px; }
 
   footer{ text-align:center; margin-top:26px; font-size:12.5px; font-weight:700; color:#3a4a6a; opacity:.8; }
+
+  /* ---- Settings ---- */
+  .settingsbar{ display:flex; justify-content:center; margin-top:20px; }
+  #gearBtn{ font-family:inherit; font-weight:800; font-size:14.5px; color:#3a4a6a; cursor:pointer;
+    background:rgba(255,255,255,.75); border:2px solid #fff; border-radius:999px; padding:10px 20px;
+    box-shadow:0 6px 16px rgba(40,60,110,.16); }
+  #gearBtn:active{ transform:translateY(2px); }
+  .sheet{ position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center;
+    padding:18px; background:rgba(25,38,68,.55); -webkit-backdrop-filter:blur(3px); backdrop-filter:blur(3px); }
+  .sheet.show{ display:flex; }
+  .sheetcard{ background:#fff; border-radius:24px; padding:20px; width:100%; max-width:420px;
+    max-height:86vh; overflow-y:auto; box-shadow:0 20px 50px rgba(20,35,70,.4); }
+  .sheetcard h2{ font-size:20px; font-weight:900; }
+  .sheetcard .sub{ font-size:13px; font-weight:600; color:#56607a; margin-top:5px; }
+  .togglist{ margin:14px 0 4px; display:flex; flex-direction:column; gap:8px; }
+  .togrow{ display:flex; align-items:center; gap:11px; background:#f4f7fc; border-radius:15px; padding:10px 12px; }
+  .togrow .ic{ width:32px; height:32px; flex:none; display:flex; align-items:center; justify-content:center; font-size:24px; }
+  .togrow .ic svg{ width:30px; height:30px; }
+  .togrow .nm{ font-weight:800; font-size:14.5px; flex:1; line-height:1.2; }
+  .togrow.off{ opacity:.5; }
+  .sw{ position:relative; width:50px; height:29px; border-radius:999px; background:#c8d3e6; flex:none;
+    cursor:pointer; transition:background .16s; border:none; }
+  .sw::after{ content:""; position:absolute; top:3px; left:3px; width:23px; height:23px; border-radius:50%;
+    background:#fff; box-shadow:0 2px 5px rgba(0,0,0,.28); transition:transform .16s; }
+  .sw.on{ background:#3fbf6a; }
+  .sw.on::after{ transform:translateX(21px); }
+  .sheetrow{ display:flex; gap:10px; margin-top:14px; }
+  .sbtn{ flex:1; font-family:inherit; font-weight:900; font-size:15.5px; cursor:pointer;
+    border:none; border-radius:15px; padding:13px; background:#e7edf8; color:#3a4a6a; }
+  .sbtn.main{ background:var(--sun); color:#3a2c00; box-shadow:0 5px 0 rgba(0,0,0,.12); }
+  .sbtn:active{ transform:translateY(2px); }
+  .emptynote{ text-align:center; font-weight:800; color:#56607a; grid-column:1/-1;
+    background:rgba(255,255,255,.7); border:3px dashed #b9c6e0; border-radius:22px; padding:26px 18px; }
 </style>
 </head>
 <body>
@@ -74,6 +107,20 @@
   <div class="subhead">Pick a game to play! 🎮</div>
   <div id="grid" class="grid"></div>
   <footer>Made for Alexander 🏗️ • more games coming soon</footer>
+
+  <div class="settingsbar"><button id="gearBtn">⚙️ Settings</button></div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="sheetcard">
+    <h2>⚙️ Which games to show</h2>
+    <div class="sub">Switch a game off to hide its card from the front page. Nothing is deleted — turn it back on any time.</div>
+    <div class="togglist" id="togglist"></div>
+    <div class="sheetrow">
+      <button class="sbtn" id="allOnBtn">Show all</button>
+      <button class="sbtn main" id="doneBtn">Done</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -133,6 +180,11 @@ const GAMES = [
     desc:"Join Splash, Breeze and Digger on three rescue missions!",
     file:"puppack.html", ready:true },
 
+  { title:"Alexander's Queen Isolation", emoji:"👑", color:"#4ad6ff",
+    svg:`<svg viewBox="0 0 48 48" width="46" height="46" aria-hidden="true"><rect x="3" y="3" width="42" height="42" rx="7" fill="#101a36"/><g fill="#31456f"><rect x="7" y="7" width="8.6" height="8.6"/><rect x="24.2" y="7" width="8.6" height="8.6"/><rect x="15.6" y="15.6" width="8.6" height="8.6"/><rect x="32.8" y="15.6" width="8.6" height="8.6"/><rect x="7" y="24.2" width="8.6" height="8.6"/><rect x="24.2" y="24.2" width="8.6" height="8.6"/><rect x="15.6" y="32.8" width="8.6" height="8.6"/><rect x="32.8" y="32.8" width="8.6" height="8.6"/></g><rect x="24.2" y="24.2" width="8.6" height="8.6" fill="#05070f"/><g fill="#4ad6ff"><path d="M8.6 39.5h9.4v2.4H8.6z"/><path d="M9.9 37.6q-1-4.2-.5-7.3l3.2 3 1.7-5.4 1.7 5.4 3.2-3q.5 3.1-.5 7.3z"/><circle cx="9.4" cy="28.6" r="1.7"/><circle cx="14.3" cy="26.4" r="1.9"/><circle cx="19.2" cy="28.6" r="1.7"/></g><g fill="#ff8a3d"><path d="M30.1 15.9h9.4v2.4h-9.4z"/><path d="M31.4 14q-1-4.2-.5-7.3l3.2 3 1.7-5.4 1.7 5.4 3.2-3q.5 3.1-.5 7.3z"/><circle cx="30.9" cy="5" r="1.7"/><circle cx="35.8" cy="2.8" r="1.9"/><circle cx="40.7" cy="5" r="1.7"/></g></svg>`,
+    desc:"Slide your queen and trap the other one — every square she leaves falls away!",
+    file:"isolation.html", ready:true },
+
   { title:"Coming soon", emoji:"⭐", color:"#ffb020",
     desc:"More fun is on its way — check back later!",
     file:"", ready:false },
@@ -148,10 +200,23 @@ const GAMES = [
   }
 })();
 
+// ---- Show / hide games (remembered on this device) ----
+const HIDE_KEY = "alexgames_hidden";
+const keyOf = g => g.file || ("placeholder:" + g.title);
+let hidden = [];
+try { const raw = localStorage.getItem(HIDE_KEY); const p = raw ? JSON.parse(raw) : []; if (Array.isArray(p)) hidden = p; }
+catch(e){ hidden = []; }
+const isHidden = g => hidden.indexOf(keyOf(g)) !== -1;
+function saveHidden(){ try { localStorage.setItem(HIDE_KEY, JSON.stringify(hidden)); } catch(e){} }
+
 // ---- Render game cards ----
-(function(){
+function renderGrid(){
   const grid=document.getElementById("grid");
+  grid.innerHTML="";
+  let shown=0;
   for(const g of GAMES){
+    if(isHidden(g)) continue;
+    shown++;
     if(g.ready && g.file){
       const a=document.createElement("a");
       a.className="card playable"; a.href=g.file;
@@ -174,6 +239,43 @@ const GAMES = [
       grid.appendChild(d);
     }
   }
+  if(!shown){
+    const e=document.createElement("div");
+    e.className="emptynote";
+    e.textContent="All games are hidden. Tap ⚙️ Settings below to switch some back on.";
+    grid.appendChild(e);
+  }
+}
+renderGrid();
+
+// ---- Settings sheet ----
+(function(){
+  const sheet=document.getElementById("sheet"), list=document.getElementById("togglist");
+  function renderList(){
+    list.innerHTML="";
+    for(const g of GAMES){
+      const row=document.createElement("div");
+      row.className="togrow"+(isHidden(g)?" off":"");
+      const sw=document.createElement("button");
+      sw.className="sw"+(isHidden(g)?"":" on");
+      sw.setAttribute("aria-label","Show "+g.title);
+      sw.addEventListener("click", ()=>{
+        const k=keyOf(g), i=hidden.indexOf(k);
+        if(i===-1) hidden.push(k); else hidden.splice(i,1);
+        saveHidden(); renderList(); renderGrid();
+      });
+      const ic=document.createElement("div");
+      ic.className="ic"; ic.innerHTML=g.svg||g.emoji;
+      const nm=document.createElement("div");
+      nm.className="nm"; nm.textContent = g.ready&&g.file ? g.title : g.title+" (placeholder card)";
+      row.appendChild(ic); row.appendChild(nm); row.appendChild(sw);
+      list.appendChild(row);
+    }
+  }
+  document.getElementById("gearBtn").addEventListener("click", ()=>{ renderList(); sheet.classList.add("show"); });
+  document.getElementById("doneBtn").addEventListener("click", ()=>sheet.classList.remove("show"));
+  document.getElementById("allOnBtn").addEventListener("click", ()=>{ hidden=[]; saveHidden(); renderList(); renderGrid(); });
+  sheet.addEventListener("click", e=>{ if(e.target===sheet) sheet.classList.remove("show"); });
 })();
 </script>
 </body>
