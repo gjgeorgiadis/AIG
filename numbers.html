@@ -86,6 +86,18 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
   box-shadow:inset 0 -22% 0 #00000033, inset 0 18% 0 #ffffff44; }
 .rfgrid.ok .rfcell{ background:linear-gradient(180deg,#b9f7a0,#42c56b); }
 .rfgrid.over .rfcell{ background:linear-gradient(180deg,#ffb3ba,#ec4257); }
+/* stacked up/down steppers */
+.vsteps{ display:flex; gap:clamp(22px,8vw,46px); justify-content:center; align-items:flex-start; }
+.vstep{ display:flex; flex-direction:column; align-items:center; gap:4px; }
+.vstep .lab{ color:var(--muted); font-weight:700; font-size:11px; letter-spacing:.12em; text-transform:uppercase; }
+.vstep button{ font-family:var(--display); font-weight:700; font-size:17px; line-height:1;
+  width:clamp(50px,15vw,62px); height:clamp(34px,9vw,40px); border:none; border-radius:11px;
+  background:var(--surface2); color:var(--bone); cursor:pointer; box-shadow:inset 0 0 0 1.5px #ffffff18;
+  display:flex; align-items:center; justify-content:center; touch-action:none; }
+.vstep button:active{ background:var(--gold); color:#2a2000; transform:scale(.95); }
+.vstep .val{ font-weight:700; font-size:clamp(22px,6.4vw,30px); min-width:2.2em; text-align:center; line-height:1.1; }
+.rfbulk{ border-radius:3px; box-shadow:inset 0 0 0 1px #0006; }
+
 .chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .chip{ font-weight:700; font-size:clamp(12px,3.3vw,14px); background:var(--surface2); color:var(--bone);
   border-radius:999px; padding:5px 11px; box-shadow:inset 0 0 0 1.5px #ffffff18; }
@@ -187,11 +199,19 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
     </div>
     <div class="rfwrap"><div id="rGrid" class="rfgrid"></div></div>
     <div class="big-eq" id="rEq">4 × 4 = <span class="y">16</span></div>
-    <div class="stepper">
-      <span class="lab">wide</span>
-      <button id="rWm">−</button><span class="val" id="rW">4</span><button id="rWp">+</button>
-      <span class="lab">tall</span>
-      <button id="rHm">−</button><span class="val" id="rH">4</span><button id="rHp">+</button>
+    <div class="vsteps">
+      <div class="vstep">
+        <div class="lab">wide</div>
+        <button id="rWp" aria-label="wider">▲</button>
+        <span class="val" id="rW">4</span>
+        <button id="rWm" aria-label="narrower">▼</button>
+      </div>
+      <div class="vstep">
+        <div class="lab">tall</div>
+        <button id="rHp" aria-label="taller">▲</button>
+        <span class="val" id="rH">4</span>
+        <button id="rHm" aria-label="shorter">▼</button>
+      </div>
     </div>
     <div class="chips" id="rChips" style="margin-top:8px"></div>
     <div class="hint" id="rHint">Match the number exactly, then tap Build.</div>
@@ -338,12 +358,33 @@ function rRender(){
   $('rEq').innerHTML = rW+' × '+rH+' = <span class="'+(prod===rN?'g':'y')+'">'+prod+'</span>';
   const g=$('rGrid');
   g.className='rfgrid'+(prod===rN?' ok':(prod>rN?' over':''));
+  // size the cubes to whatever fits — a 1x144 line has to fit on screen too
   const maxPx = Math.min(300, window.innerWidth*0.78);
-  const cell = Math.max(5, Math.min(26, Math.floor(maxPx/Math.max(rW,rH))));
-  g.style.gridTemplateColumns='repeat('+rW+','+cell+'px)';
+  const maxDim = Math.max(rW, rH);
+  const gap = maxDim > 60 ? 0 : maxDim > 22 ? 1 : 2;   // gaps vanish once cubes get tiny
+  let cell = Math.floor((maxPx - (maxDim-1)*gap) / maxDim);
+  cell = Math.max(1, Math.min(26, cell));
+  g.style.gap = gap+'px';
   g.innerHTML='';
-  for(let i=0;i<rW*rH;i++){ const d=document.createElement('div'); d.className='rfcell';
-    d.style.width=cell+'px'; d.style.height=cell+'px'; g.appendChild(d); }
+  // below ~5px a gap is invisible anyway, so paint the grid rather than stack divs
+  if(rW*rH <= 1500 && cell >= 5){
+    g.style.gridTemplateColumns='repeat('+rW+','+cell+'px)';
+    for(let i=0;i<rW*rH;i++){ const d=document.createElement('div'); d.className='rfcell';
+      d.style.width=cell+'px'; d.style.height=cell+'px'; g.appendChild(d); }
+  } else {
+    // too many cubes to draw one by one — paint the grid instead
+    g.style.gridTemplateColumns='1fr';
+    const col = prod===rN ? 'linear-gradient(180deg,#b9f7a0,#42c56b)'
+              : prod>rN  ? 'linear-gradient(180deg,#ffb3ba,#ec4257)'
+                         : 'linear-gradient(180deg,#8fd0ff,#2f86d8)';
+    const step = cell+gap;
+    const d=document.createElement('div'); d.className='rfbulk';
+    d.style.width=(rW*step)+'px'; d.style.height=(rH*step)+'px';
+    d.style.backgroundImage='linear-gradient(to right,#0b132266 1px,transparent 1px),'+
+                            'linear-gradient(to bottom,#0b132266 1px,transparent 1px),'+col;
+    d.style.backgroundSize=step+'px '+step+'px, '+step+'px '+step+'px, 100% 100%';
+    g.appendChild(d);
+  }
   $('rFound').textContent = rFound.size+' of '+pairs.length+' found';
   const chips=$('rChips'); chips.innerHTML='';
   for(const [a,b] of pairs){
@@ -372,10 +413,34 @@ function rBuild(){
               : 'You found every rectangle '+rN+' can make.', true), 450);
   }
 }
-$('rWm').onclick=()=>{ rW=Math.max(1,rW-1); rRender(); };
-$('rWp').onclick=()=>{ rW=Math.min(40,rW+1); rRender(); };
-$('rHm').onclick=()=>{ rH=Math.max(1,rH-1); rRender(); };
-$('rHp').onclick=()=>{ rH=Math.min(40,rH+1); rRender(); };
+/* hold an arrow to keep counting — 144 taps is nobody's idea of fun */
+// coalesce rapid repeats into one redraw per frame, so holding down stays smooth
+let rPending=false;
+function rScheduleRender(){
+  if(rPending) return;
+  rPending=true;
+  requestAnimationFrame(()=>{ rPending=false; rRender(); });
+}
+function holdRepeat(el, step){
+  let t=null, iv=null;
+  const fire=()=>{ step(); rScheduleRender(); };
+  const stop=()=>{ clearTimeout(t); clearInterval(iv); t=iv=null; };
+  el.addEventListener('pointerdown', e=>{
+    e.preventDefault();
+    if(el.setPointerCapture) try{ el.setPointerCapture(e.pointerId); }catch(_){}
+    fire();
+    t=setTimeout(()=>{
+      let n=0;
+      iv=setInterval(()=>{ n++; fire(); if(n>12){ clearInterval(iv); iv=setInterval(fire,28); } }, 85);
+    }, 380);
+  });
+  ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev, stop));
+}
+const rMax = () => rN;                       // never need more than N cubes along one side
+holdRepeat($('rWm'), ()=>{ rW=Math.max(1,rW-1); });
+holdRepeat($('rWp'), ()=>{ rW=Math.min(rMax(),rW+1); });
+holdRepeat($('rHm'), ()=>{ rH=Math.max(1,rH-1); });
+holdRepeat($('rHp'), ()=>{ rH=Math.min(rMax(),rH+1); });
 $('rBuild').onclick=rBuild;
 $('rSkip').onclick=()=>{ rIdx++; rSetup(); };
 
