@@ -98,6 +98,27 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
 .vstep .val{ font-weight:700; font-size:clamp(22px,6.4vw,30px); min-width:2.2em; text-align:center; line-height:1.1; }
 .rfbulk{ border-radius:3px; box-shadow:inset 0 0 0 1px #0006; }
 
+/* what-am-I-learning banner at the top of each explore mode */
+.explain{ background:var(--surface); border-radius:14px; padding:10px 13px;
+  box-shadow:inset 0 0 0 1.5px #ffffff10; color:var(--bone); font-weight:600;
+  font-size:clamp(11.5px,3.1vw,13.5px); line-height:1.45; text-align:center; }
+.explain b{ color:var(--gold); }
+
+/* number pickers: one above the other, blue up / red down */
+.ctrls{ display:flex; flex-direction:column; gap:clamp(13px,3vh,24px); align-items:center; margin:2px 0; }
+.ctrl{ display:flex; align-items:center; gap:12px; background:var(--surface); border-radius:16px;
+  padding:7px 12px 7px 16px; box-shadow:inset 0 0 0 1.5px #ffffff10; width:min(88vw,280px); }
+.ctrl .lab{ color:var(--muted); font-weight:700; font-size:11.5px; letter-spacing:.12em;
+  text-transform:uppercase; flex:1; text-align:left; }
+.ctrl .val{ font-weight:700; font-size:clamp(23px,6.6vw,32px); min-width:2.2em; text-align:center; line-height:1; }
+.ctrl .arrows{ display:flex; flex-direction:column; gap:5px; flex:none; }
+.ctrl .arrows button{ font-family:var(--display); font-weight:700; font-size:15px; line-height:1;
+  width:clamp(48px,13vw,58px); height:clamp(28px,7vw,33px); border:none; border-radius:9px;
+  color:#fff; cursor:pointer; touch-action:none; display:flex; align-items:center; justify-content:center; }
+.ctrl .arrows .up{ background:linear-gradient(180deg,#5cb3ff,#2f6fed); box-shadow:0 3px 0 #1d4ea8; }
+.ctrl .arrows .dn{ background:linear-gradient(180deg,#ff7b84,#e0384a); box-shadow:0 3px 0 #a52231; }
+.ctrl .arrows button:active{ transform:translateY(2px); box-shadow:none; filter:brightness(1.15); }
+
 .chips{ display:flex; flex-wrap:wrap; gap:6px; justify-content:center; }
 .chip{ font-weight:700; font-size:clamp(12px,3.3vw,14px); background:var(--surface2); color:var(--bone);
   border-radius:999px; padding:5px 11px; box-shadow:inset 0 0 0 1.5px #ffffff18; }
@@ -126,13 +147,19 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
 .pcell.p1{ background:linear-gradient(180deg,#ff8f9a,#d13a52); color:#fff; }
 .pcell.p2{ background:linear-gradient(180deg,#8fd0ff,#2f86d8); color:#fff; }
 .pcell.live{ box-shadow:inset 0 0 0 3px var(--gold); }
-.pcell.win{ animation:flashwin .6s ease infinite alternate; }
+.pcell.win{ animation:flashwin .6s ease infinite alternate; box-shadow:inset 0 0 0 3px #fff, 0 0 14px #ffffff88; }
 @keyframes flashwin{ to{ filter:brightness(1.7); } }
+.tapon{ display:block; color:var(--muted); font-weight:600; font-size:.78em; margin-top:2px;
+  animation:tapblink 1.3s ease-in-out infinite; }
+@keyframes tapblink{ 50%{ opacity:.35; } }
 .frow{ display:flex; gap:4px; justify-content:center; flex-wrap:wrap; }
 .fbtn{ font-family:var(--display); font-weight:700; font-size:clamp(13px,3.7vw,16px);
   width:clamp(30px,8.2vw,38px); height:clamp(30px,8.2vw,38px); border:none; border-radius:10px;
   background:var(--surface2); color:var(--bone); cursor:pointer; box-shadow:inset 0 0 0 1.5px #ffffff18; }
 .fbtn.on{ background:var(--gold); color:#2a2000; box-shadow:0 3px 0 #b8902a; }
+.fbtn.sel{ background:linear-gradient(180deg,#d6ff7a,#9fe02e); color:#1d2a00; box-shadow:0 3px 0 #74a81d; }
+.flabel.second{ margin-top:clamp(18px,4.2vh,34px); }
+.claimbox{ margin-top:9px; display:flex; flex-direction:column; gap:7px; }
 .fbtn:disabled{ opacity:.3; }
 .flabel{ color:var(--muted); font-weight:700; font-size:11px; text-align:center; letter-spacing:.1em; text-transform:uppercase; }
 
@@ -149,6 +176,12 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
 
 .turnpill{ text-align:center; font-weight:700; font-size:clamp(13px,3.7vw,16px); }
 .turnpill .k{ color:var(--gold); }
+/* little ball so you never lose track of which colour is yours */
+.turnball{ display:inline-block; width:1.05em; height:1.05em; border-radius:50%; vertical-align:-.16em;
+  margin-right:7px; box-shadow:inset 0 -3px 4px #00000055, inset 0 2px 3px #ffffff80, 0 1px 3px #0007; }
+.turnball.p1{ background:radial-gradient(circle at 35% 28%,#ffc2c8,#ff8f9a 45%,#d13a52); }
+.turnball.p2{ background:radial-gradient(circle at 35% 28%,#cfeaff,#8fd0ff 45%,#2f86d8); }
+.big .turnball{ width:.85em; height:.85em; vertical-align:-.04em; }
 
 /* overlays */
 .overlay{ position:fixed; inset:0; z-index:100; display:none; align-items:center; justify-content:center;
@@ -192,6 +225,7 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
   <section class="screen" id="rect">
     <div class="bar"><span class="barspace"></span><div class="barname">▦ Rectangle Factory</div>
       <div class="barbtns"><button class="iconbtn" id="rSkip" aria-label="Next number">⏭</button><button class="iconbtn homeb" aria-label="Home">🏠</button></div></div>
+    <div class="explain">Every number can be laid out as a rectangle. Find <b>3 different ones</b> for your number — the two sides you use are its <b>factors</b>. Some numbers can only ever make a single long line: those are the <b>primes</b>.</div>
     <div class="panel" style="text-align:center">
       <div style="font-weight:600;color:var(--muted);font-size:12px;letter-spacing:.12em;text-transform:uppercase">Make rectangles with</div>
       <div id="rN" style="font-weight:700;font-size:clamp(34px,11vw,54px);line-height:1.05">36</div>
@@ -199,19 +233,11 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
     </div>
     <div class="rfwrap"><div id="rGrid" class="rfgrid"></div></div>
     <div class="big-eq" id="rEq">4 × 4 = <span class="y">16</span></div>
-    <div class="vsteps">
-      <div class="vstep">
-        <div class="lab">wide</div>
-        <button id="rWp" aria-label="wider">▲</button>
-        <span class="val" id="rW">4</span>
-        <button id="rWm" aria-label="narrower">▼</button>
-      </div>
-      <div class="vstep">
-        <div class="lab">tall</div>
-        <button id="rHp" aria-label="taller">▲</button>
-        <span class="val" id="rH">4</span>
-        <button id="rHm" aria-label="shorter">▼</button>
-      </div>
+    <div class="ctrls">
+      <div class="ctrl"><span class="lab">wide</span><span class="val" id="rW">4</span>
+        <span class="arrows"><button class="up" id="rWp" aria-label="wider">▲</button><button class="dn" id="rWm" aria-label="narrower">▼</button></span></div>
+      <div class="ctrl"><span class="lab">tall</span><span class="val" id="rH">4</span>
+        <span class="arrows"><button class="up" id="rHp" aria-label="taller">▲</button><button class="dn" id="rHm" aria-label="shorter">▼</button></span></div>
     </div>
     <div class="chips" id="rChips" style="margin-top:8px"></div>
     <div class="hint" id="rHint">Match the number exactly, then tap Build.</div>
@@ -222,10 +248,12 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
   <section class="screen" id="split">
     <div class="bar"><span class="barspace"></span><div class="barname">✂️ Splitting Board</div>
       <div class="barbtns"><button class="iconbtn" id="sNew" aria-label="New">🎲</button><button class="iconbtn homeb" aria-label="Home">🏠</button></div></div>
-    <div class="stepper">
-      <button id="sAm">−</button><span class="val" id="sA">25</span><button id="sAp">+</button>
-      <span class="lab">×</span>
-      <button id="sBm">−</button><span class="val" id="sB">25</span><button id="sBp">+</button>
+    <div class="explain">A hard multiplication becomes four easy ones. Cut the rectangle up, work out each small piece, then add them together — that is exactly how you multiply big numbers in your head.</div>
+    <div class="ctrls">
+      <div class="ctrl"><span class="lab">across</span><span class="val" id="sA">25</span>
+        <span class="arrows"><button class="up" id="sAp" aria-label="more across">▲</button><button class="dn" id="sAm" aria-label="fewer across">▼</button></span></div>
+      <div class="ctrl"><span class="lab">down</span><span class="val" id="sB">25</span>
+        <span class="arrows"><button class="up" id="sBp" aria-label="more down">▲</button><button class="dn" id="sBm" aria-label="fewer down">▼</button></span></div>
     </div>
     <div class="canvaswrap"><div class="unitbox" id="sBox"></div></div>
     <div class="big-eq" id="sEq"></div>
@@ -236,11 +264,12 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
   <section class="screen" id="corner">
     <div class="bar"><span class="barspace"></span><div class="barname">👑 The Corner Trick</div>
       <div class="barbtns"><button class="iconbtn homeb" aria-label="Home">🏠</button></div></div>
-    <div class="stepper">
-      <span class="lab">square</span>
-      <button id="cNm">−</button><span class="val" id="cN">25</span><button id="cNp">+</button>
-      <span class="lab">shift</span>
-      <button id="cDm">−</button><span class="val" id="cD">5</span><button id="cDp">+</button>
+    <div class="explain">Squaring a number gets easy if you reshape it. Slide a strip off the square and it becomes a <b>long rectangle plus one little square</b> — which is why 25×25 is just 20×30 and 25 more.</div>
+    <div class="ctrls">
+      <div class="ctrl"><span class="lab">square</span><span class="val" id="cN">25</span>
+        <span class="arrows"><button class="up" id="cNp" aria-label="bigger square">▲</button><button class="dn" id="cNm" aria-label="smaller square">▼</button></span></div>
+      <div class="ctrl"><span class="lab">shift by</span><span class="val" id="cD">5</span>
+        <span class="arrows"><button class="up" id="cDp" aria-label="bigger shift">▲</button><button class="dn" id="cDm" aria-label="smaller shift">▼</button></span></div>
     </div>
     <div class="canvaswrap"><div class="unitbox" id="cBox"></div></div>
     <div class="big-eq" id="cEq"></div>
@@ -254,12 +283,15 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
       <div class="barbtns"><button class="iconbtn" id="pNew" aria-label="New game">↺</button><button class="iconbtn homeb" aria-label="Home">🏠</button></div></div>
     <div class="turnpill" id="pTurn">Alexander's turn</div>
     <div class="pgrid" id="pGrid"></div>
-    <div class="big-eq" id="pEq" style="margin-top:4px"></div>
     <div class="flabel">first factor</div>
     <div class="frow" id="pF1"></div>
-    <div class="flabel" style="margin-top:4px">second factor</div>
+    <div class="flabel second">second factor</div>
     <div class="frow" id="pF2"></div>
-    <div class="hint" style="margin-top:6px">Move <b>one</b> factor each turn and you claim whatever it multiplies to. Four in a row wins.</div>
+    <div class="claimbox">
+      <div class="big-eq" id="pEq"></div>
+      <button class="btn" id="pClaim" disabled>Pick a factor first</button>
+    </div>
+    <div class="hint" style="margin-top:6px">Move <b>one</b> factor each turn, then claim what it multiplies to. Four in a row wins.</div>
   </section>
 
   <!-- ===== RACE ===== -->
@@ -347,6 +379,8 @@ function result(emo,title,sub,win){
 const RNUMS=[12,16,18,24,36,48,13,60,72,17,100,96,120,23,144];
 let rIdx=0, rN=12, rW=1, rH=1, rFound=new Set();
 function factorPairs(n){ const out=[]; for(let w=1;w*w<=n;w++) if(n%w===0) out.push([w,n/w]); return out; }
+// he only has to find three — no slogging through every factor pair of 120
+const rGoal = () => Math.min(3, factorPairs(rN).length);
 function rSetup(){
   rN=RNUMS[rIdx%RNUMS.length]; rFound=new Set(); rW=1; rH=1;
   $('rN').textContent=rN;
@@ -385,13 +419,19 @@ function rRender(){
     d.style.backgroundSize=step+'px '+step+'px, '+step+'px '+step+'px, 100% 100%';
     g.appendChild(d);
   }
-  $('rFound').textContent = rFound.size+' of '+pairs.length+' found';
+  const goal=rGoal();
+  $('rFound').textContent = rFound.size+' of '+goal+' found';
   const chips=$('rChips'); chips.innerHTML='';
-  for(const [a,b] of pairs){
-    const key=a+'x'+b, got=rFound.has(key);
+  const got=[...rFound];
+  for(const key of got){
+    const [a,b]=key.split('x').map(Number);
     const c=document.createElement('span');
-    c.className='chip'+(a===b?' sq':'')+(got?'':' ghost');
-    c.textContent = got ? (a+'×'+b+(a===b?' 👑':'')) : '? × ?';
+    c.className='chip'+(a===b?' sq':'');
+    c.textContent=a+'×'+b+(a===b?' 👑':'');
+    chips.appendChild(c);
+  }
+  for(let i=got.length;i<goal;i++){
+    const c=document.createElement('span'); c.className='chip ghost'; c.textContent='? × ?';
     chips.appendChild(c);
   }
   $('rHint').textContent = prod===rN ? 'That works — tap Build!' :
@@ -403,27 +443,23 @@ function rBuild(){
   const a=Math.min(rW,rH), b=Math.max(rW,rH), key=a+'x'+b;
   if(rFound.has(key)){ blip(260,.04); $('rHint').textContent='Already found that one — try a different shape!'; return; }
   rFound.add(key); blip(a===b?900:660,.06);
-  const pairs=factorPairs(rN);
+  const pairs=factorPairs(rN), goal=rGoal();
   rRender();
-  if(rFound.size===pairs.length){
+  if(rFound.size>=goal){
     const isPrime = pairs.length===1 && rN>1;
     setTimeout(()=>result('🎉',
-      isPrime ? '<i>'+rN+'</i> is prime!' : 'All '+pairs.length+' found!',
+      isPrime ? '<i>'+rN+'</i> is prime!' : 'Found '+goal+'!',
       isPrime ? 'The only rectangle is a single line — that is what a prime number means.'
-              : 'You found every rectangle '+rN+' can make.', true), 450);
+              : rN+' can make '+pairs.length+' different rectangles in total.', true), 450);
   }
 }
 /* hold an arrow to keep counting — 144 taps is nobody's idea of fun */
-// coalesce rapid repeats into one redraw per frame, so holding down stays smooth
-let rPending=false;
-function rScheduleRender(){
-  if(rPending) return;
-  rPending=true;
-  requestAnimationFrame(()=>{ rPending=false; rRender(); });
-}
-function holdRepeat(el, step){
-  let t=null, iv=null;
-  const fire=()=>{ step(); rScheduleRender(); };
+// hold an arrow to keep counting; redraws coalesce to one per frame so it stays smooth
+function holdRepeat(el, step, render){
+  let t=null, iv=null, pending=false;
+  const draw=()=>{ if(pending) return; pending=true;
+    requestAnimationFrame(()=>{ pending=false; render(); }); };
+  const fire=()=>{ step(); draw(); };
   const stop=()=>{ clearTimeout(t); clearInterval(iv); t=iv=null; };
   el.addEventListener('pointerdown', e=>{
     e.preventDefault();
@@ -437,10 +473,10 @@ function holdRepeat(el, step){
   ['pointerup','pointercancel','pointerleave'].forEach(ev=>el.addEventListener(ev, stop));
 }
 const rMax = () => rN;                       // never need more than N cubes along one side
-holdRepeat($('rWm'), ()=>{ rW=Math.max(1,rW-1); });
-holdRepeat($('rWp'), ()=>{ rW=Math.min(rMax(),rW+1); });
-holdRepeat($('rHm'), ()=>{ rH=Math.max(1,rH-1); });
-holdRepeat($('rHp'), ()=>{ rH=Math.min(rMax(),rH+1); });
+holdRepeat($('rWm'), ()=>{ rW=Math.max(1,rW-1); }, rRender);
+holdRepeat($('rWp'), ()=>{ rW=Math.min(rMax(),rW+1); }, rRender);
+holdRepeat($('rHm'), ()=>{ rH=Math.max(1,rH-1); }, rRender);
+holdRepeat($('rHp'), ()=>{ rH=Math.min(rMax(),rH+1); }, rRender);
 $('rBuild').onclick=rBuild;
 $('rSkip').onclick=()=>{ rIdx++; rSetup(); };
 
@@ -492,10 +528,10 @@ function sRender(){
   $('sEq').innerHTML = '<span class="m">'+p[0]+' + '+p[1]+' + '+p[2]+' + '+p[3]+' =</span> '+
     sA+' × '+sB+' = <span class="g">'+(sA*sB)+'</span>';
 }
-$('sAm').onclick=()=>{ sA=Math.max(2,sA-1); sCx=Math.min(sCx,sA-1); sRender(); };
-$('sAp').onclick=()=>{ sA=Math.min(40,sA+1); sRender(); };
-$('sBm').onclick=()=>{ sB=Math.max(2,sB-1); sCy=Math.min(sCy,sB-1); sRender(); };
-$('sBp').onclick=()=>{ sB=Math.min(40,sB+1); sRender(); };
+holdRepeat($('sAm'), ()=>{ sA=Math.max(2,sA-1); sCx=Math.min(sCx,sA-1); }, sRender);
+holdRepeat($('sAp'), ()=>{ sA=Math.min(40,sA+1); }, sRender);
+holdRepeat($('sBm'), ()=>{ sB=Math.max(2,sB-1); sCy=Math.min(sCy,sB-1); }, sRender);
+holdRepeat($('sBp'), ()=>{ sB=Math.min(40,sB+1); }, sRender);
 $('sNew').onclick=()=>{
   const picks=[[25,25],[13,14],[23,17],[18,16],[32,21],[27,24],[19,19]];
   const p=picks[(Math.random()*picks.length)|0];
@@ -540,10 +576,10 @@ function cRender(){
   $('cGo').textContent = cSlid ? '⟵ Put it back' : 'Slide it! ⟶';
 }
 $('cGo').onclick=()=>{ cSlid=!cSlid; blip(cSlid?760:520,.05); cRender(); };
-$('cNm').onclick=()=>{ cN=Math.max(3,cN-1); cRender(); };
-$('cNp').onclick=()=>{ cN=Math.min(40,cN+1); cRender(); };
-$('cDm').onclick=()=>{ cD=Math.max(1,cD-1); cRender(); };
-$('cDp').onclick=()=>{ cD=Math.min(cN-1,cD+1); cRender(); };
+holdRepeat($('cNm'), ()=>{ cN=Math.max(3,cN-1); }, cRender);
+holdRepeat($('cNp'), ()=>{ cN=Math.min(40,cN+1); }, cRender);
+holdRepeat($('cDm'), ()=>{ cD=Math.max(1,cD-1); }, cRender);
+holdRepeat($('cDp'), ()=>{ cD=Math.min(cN-1,cD+1); }, cRender);
 
 /* =====================================================================
    MODE 4 — PRODUCT GAME
@@ -558,7 +594,7 @@ for(let r=0;r<6;r++) for(let c=0;c<6;c++){
   if(r<=2&&c<=2) PG_LINES.push([r*6+c,(r+1)*6+c+1,(r+2)*6+c+2,(r+3)*6+c+3]);
   if(r<=2&&c>=3) PG_LINES.push([r*6+c,(r+1)*6+c-1,(r+2)*6+c-2,(r+3)*6+c-3]);
 }
-let pg=null, pgMode='2p', pgBusy=false;
+let pg=null, pgMode='2p', pgBusy=false, pgSel=null;   // pgSel = the factor you've picked but not yet claimed
 const pgNew=()=>({own:new Int8Array(36), m:[1,1], turn:0, started:false, over:false});
 function pgMoves(s){
   const out=[];
@@ -632,73 +668,112 @@ function pgPick(s,level){
   return best;
 }
 const pgNames=()=>pgMode==='2p'?['Alexander','Daddy']:['Alexander','Computer'];
+function pgPreview(){
+  if(!pgSel) return [pg.m[0], pg.m[1]];
+  return pgSel.k===0 ? [pgSel.v, pg.m[1]] : [pg.m[0], pgSel.v];
+}
 function pgRender(win){
   const g=$('pGrid'); g.innerHTML='';
-  const liveCell = pg.started ? PG_IDX[pg.m[0]*pg.m[1]] : -1;
+  const pm=pgPreview();
+  const live = (pg.started||pgSel) ? PG_IDX[pm[0]*pm[1]] : -1;
   PG_GRID.forEach((v,i)=>{
     const d=document.createElement('div');
     d.className='pcell'+(pg.own[i]===1?' p1':pg.own[i]===2?' p2':'');
+    if(i===live && !pg.own[i]) d.classList.add('live');
     if(win && win.line.includes(i)) d.classList.add('win');
     d.textContent=v; g.appendChild(d);
   });
+  const legal=pgMoves(pg), myTurn = !pg.over && !pgBusy && pgTurnIsHuman();
   for(const n of [1,2]){
     const row=$('pF'+n); row.innerHTML='';
     const k=n-1;
     for(let v=1;v<=9;v++){
       const b=document.createElement('button');
-      b.className='fbtn'+(pg.m[k]===v?' on':'');
+      b.className='fbtn'+((pgSel&&pgSel.k===k&&pgSel.v===v)?' sel':(pg.m[k]===v?' on':''));
       b.textContent=v;
-      const legal = !pg.over && !pgBusy && pgMoves(pg).includes(k*16+v) && pgTurnIsHuman();
-      b.disabled=!legal;
-      b.onclick=()=>pgPlay(k*16+v);
+      b.disabled = !myTurn || !legal.includes(k*16+v);
+      b.onclick=()=>{ pgSel={k,v}; blip(430,.03); pgRender(null); };   // just pick — claiming is a second step
       row.appendChild(b);
     }
   }
-  const prod=pg.m[0]*pg.m[1];
-  $('pEq').innerHTML = pg.started
-    ? pg.m[0]+' × '+pg.m[1]+' = <span class="y">'+prod+'</span>'
-    : 'Both markers start on 1 — move one of them.';
+  const prod=pm[0]*pm[1];
+  const canClaim = myTurn && !!pgSel && legal.includes(pgSel.k*16+pgSel.v);
+  $('pEq').innerHTML = pgSel
+    ? pm[0]+' × '+pm[1]+' = <span class="y">'+prod+'</span>'
+    : (pg.started ? 'Markers sit on '+pg.m[0]+' and '+pg.m[1]+' — move <b>one</b>'
+                  : 'Both markers start on 1 — move <b>one</b> of them');
+  const cb=$('pClaim');
+  cb.disabled = !canClaim;
+  cb.textContent = canClaim ? 'Claim '+prod+'!' : 'Pick a factor first';
   const nm=pgNames();
   $('pTurn').innerHTML = pg.over ? '' :
-    '<span class="k">'+nm[pg.turn]+'</span>'+(pgTurnIsHuman()?"'s turn":' is thinking…');
+    '<span class="turnball p'+(pg.turn+1)+'"></span><span class="k">'+nm[pg.turn]+'</span>'+
+    (pgTurnIsHuman()?"'s turn":' is thinking…');
 }
+$('pClaim').onclick=()=>{ if(pgSel) pgPlay(pgSel.k*16+pgSel.v); };
 const pgTurnIsHuman=()=>pgMode==='2p'||pg.turn===0;
 function pgPlay(mv){
   if(pg.over||pgBusy) return;
+  pgSel=null;
   pgApply(pg,mv); blip(620,.05);
   const w=pgWinLine(pg);
   if(w){ pgEnd(w); return; }
-  if(!pgMoves(pg).length){ pgRender(null); pg.over=true;
-    result('🤝','Draw','Nobody can make a new product.',false); return; }
+  if(!pgMoves(pg).length){ pgDraw('Nobody can make a new product.'); return; }
   pgRender(null);
   if(!pgTurnIsHuman()) pgAI();
 }
 function pgAI(){
-  pgBusy=true; pgRender(null);
+  pgBusy=true; pgSel=null; pgRender(null);
   setTimeout(()=>{
     const mv=pgPick(pg,pgMode);
     pgBusy=false;
-    if(mv===null){ pg.over=true; result('🤝','Draw','No moves left.',false); return; }
+    if(mv===null){ pgDraw('No moves left.'); return; }
     pgApply(pg,mv); blip(520,.05);
     const w=pgWinLine(pg);
     if(w){ pgEnd(w); return; }
-    if(!pgMoves(pg).length){ pgRender(null); pg.over=true; result('🤝','Draw','No moves left.',false); return; }
+    if(!pgMoves(pg).length){ pgDraw('No moves left.'); return; }
     pgRender(null);
   },90);
 }
+/* Don't slam the result card over the board — let him look at the winning line first
+   and tap when he's ready. */
+let pgPending=null;
+function pgCancelWait(){
+  if(pgPending){ document.removeEventListener('pointerdown', pgPending, true); pgPending=null; }
+}
+function pgHold(banner, reveal){
+  $('pTurn').innerHTML = banner + '<span class="tapon">tap anywhere to carry on</span>';
+  const h=()=>{ pgCancelWait(); reveal(); };
+  pgPending=h;
+  // short delay so the very tap that ended the game doesn't dismiss it straight away
+  setTimeout(()=>{ if(pgPending===h) document.addEventListener('pointerdown', h, true); }, 220);
+}
 function pgEnd(w){
-  pg.over=true; pgRender(w);
+  pg.over=true; pgSel=null; pgRender(w);
   const nm=pgNames(), who=nm[w.who-1];
   const win = w.who===1;
-  result(win?'🏆':'🤖', win?'<b>'+who+'</b> wins!':'<i>'+who+'</i> wins!',
-    'Four products in a row!', win);
+  const ball='<span class="turnball p'+w.who+'"></span>';
+  pgHold(ball+'<span class="k">'+who+'</span> wins!',
+    ()=>result(win?'🏆':'🤖', ball+(win?'<b>'+who+'</b> wins!':'<i>'+who+'</i> wins!'),
+               'Four products in a row!', win));
 }
-$('pNew').onclick=()=>{ pg=pgNew(); pg.over=false; $('over').classList.remove('show'); clearConfetti($('over')); pgRender(null); if(!pgTurnIsHuman()) pgAI(); };
+function pgDraw(sub){
+  pg.over=true; pgSel=null; pgRender(null);
+  pgHold('<span class="k">Draw</span>', ()=>result('🤝','Draw',sub,false));
+}
+$('pNew').onclick=()=>{ pgCancelWait(); pg=pgNew(); pg.over=false; pgSel=null; $('over').classList.remove('show'); clearConfetti($('over')); pgRender(null); if(!pgTurnIsHuman()) pgAI(); };
 
 /* =====================================================================
    MODE 5 — MULTIPLICATION RACE
    ===================================================================== */
+const RA_TARGETS=[200,300,500,750,1000,1500,2000,3000,5000];
 let raTarget=1000, raNum=1, raTurn=0, raMode='2p', raTrail=[], raOver=false, raBusy=false;
+function raNewTarget(){
+  let t;
+  do { t=RA_TARGETS[(Math.random()*RA_TARGETS.length)|0]; } while(t===raTarget && RA_TARGETS.length>1);
+  raTarget=t;
+  raMemo.clear();            // the solver's answers depend on the target, so start fresh
+}
 const raMemo=new Map();
 function raWin(n){                       // does the player about to move win?
   if(n>=raTarget) return false;
@@ -721,7 +796,9 @@ function raRender(){
   $('raTarget').textContent=raTarget;
   $('raNum').textContent=raNum;
   const nm=raNames();
-  $('raTurn').innerHTML = raOver?'':'<span class="k">'+nm[raTurn]+'</span>'+(raHuman()?"'s turn":' is thinking…');
+  $('raTurn').innerHTML = raOver?'':
+    '<span class="turnball p'+(raTurn+1)+'"></span><span class="k">'+nm[raTurn]+'</span>'+
+    (raHuman()?"'s turn":' is thinking…');
   const t=$('raTrail'); t.innerHTML='';
   raTrail.slice(-10).forEach(s=>{ const d=document.createElement('div'); d.className='tr '+s.c; d.textContent=s.t; t.appendChild(d); });
   const ops=$('raOps'); ops.innerHTML='';
@@ -753,6 +830,7 @@ function raAI(){
   setTimeout(()=>{ raBusy=false; raPlay(raPick(raMode)); }, 400);
 }
 function raStart(){
+  raNewTarget();             // new target every round
   raNum=1; raTurn=0; raTrail=[]; raOver=false; raBusy=false;
   $('over').classList.remove('show'); clearConfetti($('over'));
   raRender(); if(!raHuman()) raAI();
@@ -776,19 +854,20 @@ document.querySelectorAll('#opp [data-opp]').forEach(b=>{
   b.addEventListener('click',()=>{
     const o=b.dataset.opp;
     $('opp').classList.remove('show');
-    if(pendingMode==='product'){ pgMode=o; pg=pgNew(); show('product'); pgRender(null); if(!pgTurnIsHuman()) pgAI(); }
+    if(pendingMode==='product'){ pgCancelWait(); pgMode=o; pg=pgNew(); pgSel=null; show('product'); pgRender(null); if(!pgTurnIsHuman()) pgAI(); }
     else { raMode=o; raMemo.clear(); show('race'); raStart(); }
   });
 });
 document.querySelectorAll('.homeb').forEach(b=>b.addEventListener('click',()=>{
+  pgCancelWait();
   $('over').classList.remove('show'); clearConfetti($('over')); show('home');
 }));
-$('oHome').onclick=()=>{ $('over').classList.remove('show'); clearConfetti($('over')); show('home'); };
+$('oHome').onclick=()=>{ pgCancelWait(); $('over').classList.remove('show'); clearConfetti($('over')); show('home'); };
 $('oAgain').onclick=()=>{
   $('over').classList.remove('show'); clearConfetti($('over'));
   const cur=document.querySelector('.screen.active').id;
   if(cur==='rect'){ rIdx++; rSetup(); }
-  else if(cur==='product'){ pg=pgNew(); pgRender(null); if(!pgTurnIsHuman()) pgAI(); }
+  else if(cur==='product'){ pgCancelWait(); pg=pgNew(); pgSel=null; pgRender(null); if(!pgTurnIsHuman()) pgAI(); }
   else if(cur==='race'){ raStart(); }
 };
 window.addEventListener('resize',()=>{

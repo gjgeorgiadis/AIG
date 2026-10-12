@@ -55,7 +55,8 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
 .side{ font-family:var(--display); font-weight:700; font-size:clamp(14px,3.7vw,16px); cursor:pointer;
   background:var(--surface); color:var(--bone); border:none; border-radius:15px; padding:11px 6px;
   box-shadow:inset 0 0 0 1.5px #ffffff14; transition:box-shadow .14s, background .14s; }
-.side .pc{ display:block; font-size:2em; line-height:1.1; }
+.sideic{ display:block; width:clamp(38px,11vw,52px); height:clamp(38px,11vw,52px); margin:0 auto 2px; }
+.sideic svg{ width:100%; height:100%; display:block; }
 .side.on{ background:var(--surface2); box-shadow:inset 0 0 0 2px var(--gold), 0 6px 16px #0006; }
 .levels{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
 .lvl{ font-family:var(--display); font-weight:700; font-size:clamp(13px,3.4vw,15px); color:var(--ink);
@@ -109,10 +110,12 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
   background:#1c2a1acc; opacity:.45; pointer-events:none; }
 .sq.cap::after{ content:""; position:absolute; inset:6%; border-radius:50%;
   border:5px solid #1c2a1acc; opacity:.45; background:none; width:auto; height:auto; }
-.pc{ font-size:clamp(26px,8.6vw,46px); line-height:1; pointer-events:none;
-  position:relative; z-index:2; transition:transform .12s; }
-.pc.w{ color:#fffdf7; text-shadow:0 1px 0 #9a8a72, 0 -1px 0 #6f6354, 1px 0 0 #6f6354, -1px 0 0 #6f6354, 0 3px 5px #0007; }
-.pc.b{ color:#2b2520; text-shadow:0 1px 0 #6d6258, 0 -1px 0 #0d0b09, 1px 0 0 #0d0b09, -1px 0 0 #0d0b09, 0 3px 5px #0006; }
+.pc{ width:88%; height:88%; position:relative; z-index:2; pointer-events:none;
+  display:block; filter:drop-shadow(0 2px 2px rgba(0,0,0,.45)); transition:transform .12s; }
+.pc svg{ width:100%; height:100%; display:block; overflow:visible; }
+.cap-ic{ display:inline-block; width:clamp(15px,4.4vw,21px); height:clamp(15px,4.4vw,21px); vertical-align:-3px; }
+.cap-ic svg{ width:100%; height:100%; display:block; }
+.promo-ic{ width:clamp(40px,12vw,58px); height:clamp(40px,12vw,58px); margin:0 auto; filter:none; }
 .sq.pick{ cursor:pointer; }
 
 /* ---------- overlays ---------- */
@@ -146,6 +149,12 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+  <linearGradient id="wgrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#fffefb"/><stop offset=".55" stop-color="#f5e9d2"/><stop offset="1" stop-color="#dcc9a6"/></linearGradient>
+  <linearGradient id="bgrad" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#626780"/><stop offset=".5" stop-color="#363c52"/><stop offset="1" stop-color="#1a1e2b"/></linearGradient>
+</defs></svg>
 <div id="app">
 
   <a href="index.html" id="backToMenu">‹ Menu</a>
@@ -158,8 +167,8 @@ body{ font-family:var(--display); color:var(--bone); position:fixed; inset:0; ov
     <div class="menu">
       <div class="seclabel">I want to play</div>
       <div class="sides">
-        <button class="side on" id="sideW" data-side="w"><span class="pc" style="color:#fffdf7;text-shadow:0 1px 0 #9a8a72,0 -1px 0 #555,1px 0 0 #555,-1px 0 0 #555">♚</span>White</button>
-        <button class="side" id="sideB" data-side="b"><span class="pc" style="color:#2b2520;text-shadow:0 1px 0 #7d7268,0 -1px 0 #000,1px 0 0 #000,-1px 0 0 #000">♚</span>Black</button>
+        <button class="side on" id="sideW" data-side="w"><span class="sideic" id="sideicW"></span>White</button>
+        <button class="side" id="sideB" data-side="b"><span class="sideic" id="sideicB"></span>Black</button>
       </div>
       <div class="seclabel">Play the computer</div>
       <div class="levels">
@@ -519,7 +528,67 @@ function status(g){
 /* ======================= UI ======================= */
 const $=id=>document.getElementById(id);
 const board=$('board');
-const GLYPH={1:'♟',2:'♞',3:'♝',4:'♜',5:'♛',6:'♚'};
+/* Hand-drawn pieces instead of the Unicode chess glyphs. Two reasons: they have faces,
+   which is a lot friendlier for a 6-year-old, and the pawn glyph (U+265F) is defined with
+   emoji presentation, so Apple drew it as a colour emoji that ignored the CSS colour —
+   which is why both sides' pawns used to look identical. */
+const NAMES={1:'Pawn',2:'Knight',3:'Bishop',4:'Rook',5:'Queen',6:'King'};
+function pieceSVG(t, white){
+  const fill  = white ? 'url(#wgrad)' : 'url(#bgrad)';
+  const line  = white ? '#8a7351' : '#0b0d16';
+  const eye   = white ? '#3a3229' : '#eef3ff';
+  const spark = white ? '#fffdf5' : '#aab4d6';
+  const S = `fill="${fill}" stroke="${line}" stroke-width="4" stroke-linejoin="round" stroke-linecap="round"`;
+  const base = `<rect x="20" y="78" width="60" height="13" rx="6" ${S}/>`;
+  const eyes = (cy,r,dx)=>`
+    <circle cx="${50-dx}" cy="${cy}" r="${r}" fill="${eye}"/>
+    <circle cx="${50+dx}" cy="${cy}" r="${r}" fill="${eye}"/>
+    <circle cx="${50-dx-r*0.35}" cy="${cy-r*0.4}" r="${r*0.38}" fill="${spark}"/>
+    <circle cx="${50+dx-r*0.35}" cy="${cy-r*0.4}" r="${r*0.38}" fill="${spark}"/>`;
+  let inner='';
+  if(t===1){                                     // Pawn — little round fellow
+    inner = base
+      + `<path d="M37 55 C37 66 32 71 29 78 H71 C68 71 63 66 63 55 Z" ${S}/>`
+      + `<ellipse cx="50" cy="54" rx="20" ry="6" ${S}/>`
+      + `<circle cx="50" cy="35" r="16" ${S}/>`
+      + eyes(33,3.1,6.5)
+      + `<path d="M45 42 q5 4.5 10 0" stroke="${eye}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  } else if(t===4){                              // Rook — castle tower
+    inner = base
+      + `<path d="M31 48 H69 L74 78 H26 Z" ${S}/>`
+      + `<path d="M24 48 V26 h11 v8 h9 v-8 h12 v8 h9 v-8 h11 v22 Z" ${S}/>`
+      + eyes(60,3.2,8);
+  } else if(t===2){                              // Knight — horse head
+    inner = base
+      + `<path d="M33 78 c-1-14 3-22 10-28 c-6-4 -8-11 -4-16 c4-5 11-5 15-1 l4-10 l5 12
+                  c11 4 16 13 16 25 c0 7 -2 12 -4 18 Z" ${S}/>`
+      + `<path d="M48 26 l-7 6 l1-10 Z" ${S}/>`
+      + `<circle cx="60" cy="44" r="3.4" fill="${eye}"/>`
+      + `<circle cx="58.8" cy="42.8" r="1.3" fill="${spark}"/>`
+      + `<path d="M40 56 q7 3 14 1" stroke="${line}" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
+  } else if(t===3){                              // Bishop — tall hat
+    inner = base
+      + `<path d="M35 78 c0-14 4-21 8-27 c-6-5 -6-13 1-17 c4-3 8-3 12 0 c7 4 7 12 1 17
+                  c4 6 8 13 8 27 Z" ${S}/>`
+      + `<circle cx="50" cy="22" r="5.5" ${S}/>`
+      + `<path d="M55 42 l-8 9" stroke="${line}" stroke-width="3" stroke-linecap="round" fill="none"/>`
+      + eyes(58,3,7);
+  } else if(t===5){                              // Queen — spiky crown
+    inner = base
+      + `<path d="M29 78 L24 44 L37 55 L44 34 L50 48 L56 34 L63 55 L76 44 L71 78 Z" ${S}/>`
+      + `<circle cx="24" cy="42" r="5" ${S}/><circle cx="76" cy="42" r="5" ${S}/>`
+      + `<circle cx="44" cy="32" r="4.5" ${S}/><circle cx="56" cy="32" r="4.5" ${S}/>`
+      + eyes(66,3.2,8);
+  } else {                                       // King — crown with a cross
+    inner = base
+      + `<path d="M30 78 L27 50 H73 L70 78 Z" ${S}/>`
+      + `<path d="M27 50 l4-16 l9 9 l10-13 l10 13 l9-9 l4 16 Z" ${S}/>`
+      + `<rect x="46.5" y="8" width="7" height="18" rx="3" ${S}/>`
+      + `<rect x="41" y="13.5" width="18" height="7" rx="3" ${S}/>`
+      + eyes(64,3.2,8);
+  }
+  return `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">${inner}</svg>`;
+}
 let g=null, mode='ai', level='medium', mySide=WHITE, flip=false;
 let sel=-1, selMoves=[], lastFrom=-1, lastTo=-1, busy=false, over=false, muted=false;
 let pendingPromo=null, sqEls=[];
@@ -560,7 +629,8 @@ function render(){
     if(pc){
       const s=document.createElement('span');
       s.className='pc '+(colOf(pc)===WHITE?'w':'b');
-      s.textContent=GLYPH[typeOf(pc)];
+      s.innerHTML=pieceSVG(typeOf(pc), colOf(pc)===WHITE);
+      s.title=(colOf(pc)===WHITE?'White ':'Black ')+NAMES[typeOf(pc)];
       el.appendChild(s);
     }
   }
@@ -591,8 +661,9 @@ function renderStrips(){
   $('whoBot').textContent = label(botCol);
   $('whoTop').textContent = label(topCol);
   const capt = capturedLists();
-  $('takenBot').textContent = capt[botCol?1:0].join('');
-  $('takenTop').textContent = capt[topCol?1:0].join('');
+  const tray = list => list.map(o=>'<i class="cap-ic">'+pieceSVG(o.t,o.white)+'</i>').join('');
+  $('takenBot').innerHTML = tray(capt[botCol?1:0]);
+  $('takenTop').innerHTML = tray(capt[topCol?1:0]);
   const adv = materialDiff();
   const bAdv = botCol===WHITE ? adv : -adv;
   $('advBot').textContent = bAdv>0 ? '+'+bAdv : '';
@@ -615,7 +686,7 @@ function capturedLists(){
     for(const t of [5,4,3,2,1]){
       let miss = start[t]-have[victimIdx][t];
       if(t===5 && miss<0) miss=0;            // promotions can add queens
-      for(let i=0;i<miss;i++) out[ci].push(GLYPH[t]);
+      for(let i=0;i<miss;i++) out[ci].push({t:t, white: victimIdx===0});
     }
   }
   return out;
@@ -665,7 +736,7 @@ function askPromo(moves){
     const m=moves.find(x=>mProm(x)===t); if(!m) continue;
     const b=document.createElement('button');
     b.className='promobtn';
-    b.innerHTML='<span class="pc '+(g.turn===WHITE?'w':'b')+'">'+GLYPH[t]+'</span>';
+    b.innerHTML='<span class="pc promo-ic">'+pieceSVG(t, g.turn===WHITE)+'</span>';
     b.addEventListener('click', ()=>{ $('promo').classList.remove('show'); pendingPromo=null; playMove(m); });
     row.appendChild(b);
   }
@@ -806,8 +877,11 @@ $('overHome').addEventListener('click', ()=>{ $('over').classList.remove('show')
 $('howBtn').addEventListener('click', ()=>$('how').classList.add('show'));
 $('howClose').addEventListener('click', ()=>$('how').classList.remove('show'));
 
+$('sideicW').innerHTML=pieceSVG(6,true);
+$('sideicB').innerHTML=pieceSVG(6,false);
 show('home');
 })();
 </script>
+<script>setTimeout(function(){document.getElementById("btn2p").click();},100);</script>
 </body>
 </html>
