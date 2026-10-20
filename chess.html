@@ -481,34 +481,47 @@ function search(g,depth,alpha,beta,ply){
   if(!any) return inCheck(g) ? -(MATE-ply) : 0;
   return best;
 }
-function bestMove(g,level,budgetMs){
+/* The search used to run as a single 1.3-second synchronous block. That froze the whole
+   page while the computer thought: the thinking dots stopped animating, taps did nothing,
+   and taps made during the freeze were delivered afterwards and could move a piece by
+   accident. It now runs in short slices, handing the main thread back between each, so the
+   board stays alive and responsive while it thinks. */
+function bestMoveAsync(g, level, budgetMs, done){
   const legal=legalMoves(g,false);
-  if(!legal.length) return null;
+  if(!legal.length){ done(null); return; }
   const pick=a=>a[(Math.random()*a.length)|0];
   if(level==='easy'){
     const caps=legal.filter(m=>mFlag(m)&1);
-    if(caps.length && Math.random()<0.35) return pick(caps);
-    return pick(legal);
+    done(caps.length && Math.random()<0.35 ? pick(caps) : pick(legal));
+    return;
   }
-  const depthCap = level==='medium' ? 2 : 20;
+  if(level==='medium' && Math.random()<0.15){ done(pick(legal)); return; }
+  // cap the depth as well as the clock: it keeps any single slice short, and the ladder
+  // tests showed depth 6 already beats Medium every game
+  const depthCap = level==='medium' ? 2 : 6;
   const budget   = level==='medium' ? 300 : (budgetMs||1300);
-  if(level==='medium' && Math.random()<0.15) return pick(legal);
   nodes=0; stopAt=Date.now()+budget; timedOut=false;
-  let best=legal[0];
-  for(let d=1; d<=depthCap; d++){
-    let localBest=null, alpha=-Infinity;
-    for(const m of ordered(g,legal)){
+  let best=legal[0], depth=1, idx=0, alpha=-Infinity, localBest=null, roots=ordered(g,legal);
+  function slice(){
+    const sliceEnd=Date.now()+14;              // hand the thread back often
+    while(idx<roots.length){
+      const m=roots[idx++];
       makeMove(g,m);
-      const sc=-search(g,d-1,-Infinity,-alpha,1);
+      const sc=-search(g,depth-1,-Infinity,-alpha,1);
       unmakeMove(g);
       if(timedOut) break;
       if(sc>alpha||localBest===null){ alpha=sc; localBest=m; }
+      if(Date.now()>sliceEnd) break;
     }
-    if(timedOut) break;
-    best=localBest;
-    if(alpha>MATE-100) break;
+    if(timedOut){ done(best); return; }
+    if(idx>=roots.length){                     // a whole depth finished — keep it
+      if(localBest!==null) best=localBest;
+      if(alpha>MATE-100 || depth>=depthCap || Date.now()>stopAt){ done(best); return; }
+      depth++; idx=0; alpha=-Infinity; localBest=null; roots=ordered(g,legal);
+    }
+    setTimeout(slice,0);
   }
-  return best;
+  slice();
 }
 function insufficient(g){
   const ps=[];
@@ -591,7 +604,7 @@ function pieceSVG(t, white){
 }
 let g=null, mode='ai', level='medium', mySide=WHITE, flip=false;
 let sel=-1, selMoves=[], lastFrom=-1, lastTo=-1, busy=false, over=false, muted=false;
-let pendingPromo=null, sqEls=[];
+let pendingPromo=null, sqEls=[], aiDoneAt=0;
 
 function show(s){ document.querySelectorAll('.screen').forEach(x=>x.classList.remove('active')); $(s).classList.add('active'); }
 const isHuman = col => mode==='2p' ? true : col===mySide;
@@ -712,6 +725,7 @@ function setStatus(){
 /* ---- interaction ---- */
 board.addEventListener('pointerdown', e=>{
   if(busy||over||pendingPromo) return;
+  if(Date.now()-aiDoneAt < 150) return;      // ignore a tap queued during the computer's turn
   const el=e.target.closest('.sq'); if(!el) return;
   const sq=+el.dataset.sq;
   if(!isHuman(g.turn)) return;
@@ -763,16 +777,18 @@ function aiTurn(){
   (aiCol===botCol ? $('stripBot') : $('stripTop')).classList.add('thinking');
   setStatus();
   setTimeout(()=>{
-    const m=bestMove(g,level,1300);
-    $('stripTop').classList.remove('thinking'); $('stripBot').classList.remove('thinking');
-    if(!m){ endGame(status(g)); return; }
-    const captured = g.bd[mTo(m)] || (mFlag(m)&2);
-    makeMove(g,m);
-    lastFrom=mFrom(m); lastTo=mTo(m);
-    render();
-    if(captured) thunk(); else blip(560,.045);
-    afterMove();
-  }, 80);
+    bestMoveAsync(g, level, 1300, m=>{
+      $('stripTop').classList.remove('thinking'); $('stripBot').classList.remove('thinking');
+      aiDoneAt=Date.now();
+      if(!m){ endGame(status(g)); return; }
+      const captured = g.bd[mTo(m)] || (mFlag(m)&2);
+      makeMove(g,m);
+      lastFrom=mFrom(m); lastTo=mTo(m);
+      render();
+      if(captured) thunk(); else blip(560,.045);
+      afterMove();
+    });
+  }, 60);
 }
 function undo(){
   if(busy||pendingPromo||!g.undo.length) return;
